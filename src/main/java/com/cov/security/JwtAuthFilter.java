@@ -33,20 +33,24 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        String token = authHeader.substring(7);
-        String username = jwtUtil.extractUsername(token);
+        try {
+            String token = authHeader.substring(7);
+            String username = jwtUtil.extractUsername(token);
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            if (jwtUtil.isTokenValid(token, userDetails)) {
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities()
-                );
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                if (jwtUtil.isTokenValid(token, userDetails)) {
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities()
+                    );
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
             }
+        } catch (RuntimeException ignored) {
+            // Ignore invalid or expired tokens and continue without authentication.
         }
 
         filterChain.doFilter(request, response);
