@@ -67,6 +67,15 @@ public class ReservationService {
                 .collect(Collectors.toList());
     }
 
+    public List<ReservationResponse> pourMesTrajets(AppUserDetails principal) {
+        if (principal.getRole() != Role.CONDUCTEUR) {
+            throw new IllegalArgumentException("Operation reservee aux conducteurs");
+        }
+        return reservationRepository.findByTrajetConducteurId(principal.getId()).stream()
+                .map(DtoMapper::toReservationResponse)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public ReservationResponse confirmer(Long reservationId, AppUserDetails principal) {
         Reservation reservation = findReservation(reservationId);

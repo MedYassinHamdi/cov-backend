@@ -8,5 +8,6 @@ public record VehiculeResponse(
         int nbPlaces,
         String couleur,
         int annee,
+        String imageUrl,
         Long conducteurId
 ) {}

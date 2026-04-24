@@ -40,6 +40,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                     .requestMatchers("/api/auth/register", "/api/auth/login", "/h2-console/**").permitAll()
+                    .requestMatchers("/uploads/**").permitAll()
                     .requestMatchers("/api/trajets/mes-trajets").authenticated()
                     .requestMatchers(HttpMethod.GET, "/api/trajets").permitAll()
                     .requestMatchers(new RegexRequestMatcher("^/api/trajets/\\d+$", "GET")).permitAll()

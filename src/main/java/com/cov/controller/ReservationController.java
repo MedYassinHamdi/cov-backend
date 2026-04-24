@@ -35,6 +35,11 @@ public class ReservationController {
         return reservationService.mesReservations((AppUserDetails) authentication.getPrincipal());
     }
 
+    @GetMapping("/pour-mes-trajets")
+    public List<ReservationResponse> pourMesTrajets(Authentication authentication) {
+        return reservationService.pourMesTrajets((AppUserDetails) authentication.getPrincipal());
+    }
+
     @PutMapping("/{id}/confirmer")
     public ReservationResponse confirmer(@PathVariable Long id, Authentication authentication) {
         return reservationService.confirmer(id, (AppUserDetails) authentication.getPrincipal());

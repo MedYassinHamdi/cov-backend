@@ -39,4 +39,9 @@ public class VehiculeController {
     public void delete(@PathVariable Long id, Authentication authentication) {
         vehiculeService.delete(id, (AppUserDetails) authentication.getPrincipal());
     }
+
+    @PostMapping("/{id}/image")
+    public VehiculeResponse uploadImage(@PathVariable Long id, @org.springframework.web.bind.annotation.RequestParam("file") org.springframework.web.multipart.MultipartFile file, Authentication authentication) {
+        return vehiculeService.uploadImage(id, file, (AppUserDetails) authentication.getPrincipal());
+    }
 }

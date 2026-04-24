@@ -30,6 +30,7 @@ public class Vehicule {
     private int nbPlaces;
     private String couleur;
     private int annee;
+    private String imageUrl;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)

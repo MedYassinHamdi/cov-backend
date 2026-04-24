@@ -16,5 +16,6 @@ public record TrajetResponse(
         String conducteurNom,
         Long vehiculeId,
         String vehiculeDescription,
+        String vehiculeImageUrl,
         LocalDateTime createdAt
 ) {}

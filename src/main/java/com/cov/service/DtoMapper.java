@@ -54,6 +54,7 @@ final class DtoMapper {
                 conducteur != null ? conducteur.getNom() + " " + conducteur.getPrenom() : null,
                 vehicule != null ? vehicule.getId() : null,
                 vehicule != null ? vehicule.getMarque() + " " + vehicule.getModele() : null,
+                vehicule != null ? vehicule.getImageUrl() : null,
                 trajet.getCreatedAt()
         );
     }
@@ -81,6 +82,7 @@ final class DtoMapper {
                 vehicule.getNbPlaces(),
                 vehicule.getCouleur(),
                 vehicule.getAnnee(),
+                vehicule.getImageUrl(),
                 vehicule.getConducteur() != null ? vehicule.getConducteur().getId() : null
         );
     }
