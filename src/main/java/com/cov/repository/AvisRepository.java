@@ -8,4 +8,6 @@ public interface AvisRepository extends JpaRepository<Avis, Long> {
     List<Avis> findByConducteurId(Long conducteurId);
 
     List<Avis> findByTrajetId(Long trajetId);
+
+    boolean existsByAuteurIdAndTrajetId(Long auteurId, Long trajetId);
 }

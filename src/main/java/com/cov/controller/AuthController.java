@@ -1,5 +1,6 @@
 package com.cov.controller;
 
+import com.cov.dto.request.BecomeConducteurRequest;
 import com.cov.dto.request.LoginRequest;
 import com.cov.dto.request.RegisterRequest;
 import com.cov.dto.response.AuthResponse;
@@ -36,5 +37,10 @@ public class AuthController {
     @GetMapping("/me")
     public UserResponse me(Authentication authentication) {
         return authService.me(authentication);
+    }
+
+    @PostMapping("/become-conducteur")
+    public AuthResponse becomeConducteur(@RequestBody BecomeConducteurRequest request, Authentication authentication) {
+        return authService.becomeConducteur(request, authentication);
     }
 }

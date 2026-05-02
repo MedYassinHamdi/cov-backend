@@ -46,8 +46,11 @@ public class AvisService {
                 .filter(item -> item.getTrajet() != null && item.getTrajet().getId().equals(trajet.getId()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Aucune reservation trouvee pour ce trajet"));
-        if (reservation.getStatut() == null || reservation.getStatut() == StatutReservation.ANNULEE || reservation.getStatut() == StatutReservation.REFUSEE) {
-            throw new IllegalArgumentException("Impossible de commenter un trajet annule ou refuse");
+        if (reservation.getStatut() != StatutReservation.CONFIRMEE) {
+            throw new IllegalArgumentException("Vous pouvez commenter uniquement une reservation confirmee");
+        }
+        if (avisRepository.existsByAuteurIdAndTrajetId(auteur.getId(), trajet.getId())) {
+            throw new IllegalArgumentException("Vous avez deja laisse un avis pour ce trajet");
         }
 
         Avis avis = new Avis();

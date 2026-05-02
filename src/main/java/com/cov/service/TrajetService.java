@@ -14,6 +14,7 @@ import com.cov.repository.UtilisateurRepository;
 import com.cov.repository.VehiculeRepository;
 import com.cov.security.AppUserDetails;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -36,8 +37,10 @@ public class TrajetService {
     }
 
     public List<TrajetResponse> search(String depart, String arrivee, LocalDate date, Integer places) {
+        LocalDateTime now = LocalDateTime.now();
         return trajetRepository.findAll().stream()
                 .filter(trajet -> trajet.getStatut() == StatutTrajet.OUVERT)
+                .filter(trajet -> trajet.getDateDepart().isAfter(now))
                 .filter(trajet -> depart == null || depart.isBlank() || trajet.getVilleDepart().toLowerCase().contains(depart.toLowerCase()))
                 .filter(trajet -> arrivee == null || arrivee.isBlank() || trajet.getVilleArrivee().toLowerCase().contains(arrivee.toLowerCase()))
                 .filter(trajet -> date == null || trajet.getDateDepart().toLocalDate().isEqual(date))
@@ -61,15 +64,12 @@ public class TrajetService {
     @Transactional
     public TrajetResponse create(TrajetRequest request, AppUserDetails principal) {
         Conducteur conducteur = getConducteur(principal);
-        Vehicule vehicule = request.vehiculeId() == null ? null : vehiculeRepository.findById(request.vehiculeId())
-                .orElseThrow(() -> new ResourceNotFoundException("Vehicule introuvable"));
-        if (vehicule != null && !Objects.equals(vehicule.getConducteur().getId(), conducteur.getId())) {
-            throw new IllegalArgumentException("Ce vehicule ne vous appartient pas");
-        }
+        validateRoute(request);
+        Vehicule vehicule = resolveVehicle(request, conducteur.getId());
 
         Trajet trajet = new Trajet();
-        trajet.setVilleDepart(request.villeDepart());
-        trajet.setVilleArrivee(request.villeArrivee());
+        trajet.setVilleDepart(request.villeDepart().trim());
+        trajet.setVilleArrivee(request.villeArrivee().trim());
         trajet.setDateDepart(request.dateDepart());
         trajet.setNbPlacesTotal(request.nbPlacesTotal());
         trajet.setNbPlacesDisponibles(request.nbPlacesTotal());
@@ -84,15 +84,11 @@ public class TrajetService {
     public TrajetResponse update(Long id, TrajetRequest request, AppUserDetails principal) {
         Trajet trajet = findTrajet(id);
         assertOwner(trajet, principal);
+        validateRoute(request);
+        Vehicule vehicule = resolveVehicle(request, trajet.getConducteur().getId());
 
-        Vehicule vehicule = request.vehiculeId() == null ? null : vehiculeRepository.findById(request.vehiculeId())
-                .orElseThrow(() -> new ResourceNotFoundException("Vehicule introuvable"));
-        if (vehicule != null && !Objects.equals(vehicule.getConducteur().getId(), trajet.getConducteur().getId())) {
-            throw new IllegalArgumentException("Ce vehicule ne vous appartient pas");
-        }
-
-        trajet.setVilleDepart(request.villeDepart());
-        trajet.setVilleArrivee(request.villeArrivee());
+        trajet.setVilleDepart(request.villeDepart().trim());
+        trajet.setVilleArrivee(request.villeArrivee().trim());
         trajet.setDateDepart(request.dateDepart());
         trajet.setNbPlacesTotal(request.nbPlacesTotal());
         trajet.setNbPlacesDisponibles(Math.min(trajet.getNbPlacesDisponibles(), request.nbPlacesTotal()));
@@ -128,6 +124,26 @@ public class TrajetService {
             throw new IllegalArgumentException("Acces conducteur uniquement");
         }
         return conducteur;
+    }
+
+    private void validateRoute(TrajetRequest request) {
+        String depart = request.villeDepart().trim();
+        String arrivee = request.villeArrivee().trim();
+        if (depart.equalsIgnoreCase(arrivee)) {
+            throw new IllegalArgumentException("La ville de depart et la destination doivent etre differentes");
+        }
+    }
+
+    private Vehicule resolveVehicle(TrajetRequest request, Long conducteurId) {
+        Vehicule vehicule = request.vehiculeId() == null ? null : vehiculeRepository.findById(request.vehiculeId())
+                .orElseThrow(() -> new ResourceNotFoundException("Vehicule introuvable"));
+        if (vehicule != null && !Objects.equals(vehicule.getConducteur().getId(), conducteurId)) {
+            throw new IllegalArgumentException("Ce vehicule ne vous appartient pas");
+        }
+        if (vehicule != null && request.nbPlacesTotal() > vehicule.getNbPlaces()) {
+            throw new IllegalArgumentException("Le nombre de places depasse la capacite du vehicule");
+        }
+        return vehicule;
     }
 
     private void assertOwner(Trajet trajet, AppUserDetails principal) {

@@ -44,6 +44,17 @@ public class ReservationService {
         if (trajet.getStatut() != StatutTrajet.OUVERT) {
             throw new IllegalArgumentException("Ce trajet n'est pas reservable");
         }
+        if (trajet.getConducteur() != null && Objects.equals(trajet.getConducteur().getId(), principal.getId())) {
+            throw new IllegalArgumentException("Vous ne pouvez pas reserver votre propre trajet");
+        }
+        boolean alreadyReserved = reservationRepository.existsByVoyageurIdAndTrajetIdAndStatutIn(
+                voyageur.getId(),
+                trajet.getId(),
+                List.of(StatutReservation.EN_ATTENTE, StatutReservation.CONFIRMEE)
+        );
+        if (alreadyReserved) {
+            throw new IllegalArgumentException("Vous avez deja une reservation active pour ce trajet");
+        }
         if (trajet.getNbPlacesDisponibles() < request.nbPlacesReservees()) {
             throw new IllegalArgumentException("Nombre de places insuffisant");
         }
@@ -122,9 +133,6 @@ public class ReservationService {
     }
 
     private Voyageur getVoyageur(AppUserDetails principal) {
-        if (principal.getRole() != Role.VOYAGEUR) {
-            throw new IllegalArgumentException("Reservation reservee aux voyageurs");
-        }
         Utilisateur utilisateur = utilisateurRepository.findById(principal.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Utilisateur introuvable"));
         if (!(utilisateur instanceof Voyageur voyageur)) {
