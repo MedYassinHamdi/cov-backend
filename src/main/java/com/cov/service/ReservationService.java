@@ -15,6 +15,7 @@ import com.cov.repository.ReservationRepository;
 import com.cov.repository.TrajetRepository;
 import com.cov.repository.UtilisateurRepository;
 import com.cov.security.AppUserDetails;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -101,6 +102,8 @@ public class ReservationService {
         assertOwner(reservation.getTrajet(), principal);
         restorePlaces(reservation);
         reservation.setStatut(StatutReservation.REFUSEE);
+        reservation.setPenaliteMontant(0.0);
+        reservation.setPenalitePourcentage(0);
         return DtoMapper.toReservationResponse(reservation);
     }
 
@@ -112,7 +115,23 @@ public class ReservationService {
         if (!ownerVoyageur && !ownerTrajet) {
             throw new IllegalArgumentException("Operation non autorisee");
         }
-        restorePlaces(reservation);
+        if (reservation.getStatut() == StatutReservation.ANNULEE || reservation.getStatut() == StatutReservation.REFUSEE) {
+            throw new IllegalArgumentException("Cette reservation est deja annulee");
+        }
+        boolean annulationApresDepart = reservation.getTrajet() != null
+                && LocalDateTime.now().isAfter(reservation.getTrajet().getDateDepart());
+        if (annulationApresDepart && ownerVoyageur) {
+            double montantTotal = reservation.getNbPlacesReservees() * reservation.getTrajet().getPrix();
+            reservation.setPenalitePourcentage(10);
+            reservation.setPenaliteMontant(Math.round(montantTotal * 10.0) / 100.0);
+        } else {
+            if (!annulationApresDepart) {
+                restorePlaces(reservation);
+            }
+            reservation.setPenalitePourcentage(0);
+            reservation.setPenaliteMontant(0.0);
+        }
+        reservation.setDateAnnulation(LocalDateTime.now());
         reservation.setStatut(StatutReservation.ANNULEE);
         return DtoMapper.toReservationResponse(reservation);
     }

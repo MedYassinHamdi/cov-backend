@@ -4,6 +4,7 @@ import com.cov.dto.request.TrajetRequest;
 import com.cov.dto.response.TrajetResponse;
 import com.cov.enums.Role;
 import com.cov.enums.StatutTrajet;
+import com.cov.enums.TypeTrajet;
 import com.cov.exception.ResourceNotFoundException;
 import com.cov.model.Conducteur;
 import com.cov.model.Trajet;
@@ -15,7 +16,9 @@ import com.cov.repository.VehiculeRepository;
 import com.cov.security.AppUserDetails;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
@@ -36,15 +39,44 @@ public class TrajetService {
         this.vehiculeRepository = vehiculeRepository;
     }
 
-    public List<TrajetResponse> search(String depart, String arrivee, LocalDate date, Integer places) {
+    public List<TrajetResponse> search(String depart,
+                                       String arrivee,
+                                       LocalDate date,
+                                       Integer places,
+                                       TypeTrajet typeTrajet,
+                                       Boolean fumeur,
+                                       Boolean animaux,
+                                       String typeVehicule,
+                                       StatutTrajet statut,
+                                       Double prixMin,
+                                       Double prixMax,
+                                       Double noteMin,
+                                       Integer distanceKmMin,
+                                       Integer distanceKmMax,
+                                       LocalTime heureDepartMin,
+                                       LocalTime heureDepartMax) {
         LocalDateTime now = LocalDateTime.now();
         return trajetRepository.findAll().stream()
-                .filter(trajet -> trajet.getStatut() == StatutTrajet.OUVERT)
-                .filter(trajet -> trajet.getDateDepart().isAfter(now))
+                .filter(trajet -> statut == null ? trajet.getStatut() == StatutTrajet.OUVERT : trajet.getStatut() == statut)
+                .filter(trajet -> statut == null || trajet.getDateDepart().isAfter(now))
                 .filter(trajet -> depart == null || depart.isBlank() || trajet.getVilleDepart().toLowerCase().contains(depart.toLowerCase()))
                 .filter(trajet -> arrivee == null || arrivee.isBlank() || trajet.getVilleArrivee().toLowerCase().contains(arrivee.toLowerCase()))
                 .filter(trajet -> date == null || trajet.getDateDepart().toLocalDate().isEqual(date))
                 .filter(trajet -> places == null || trajet.getNbPlacesDisponibles() >= places)
+                .filter(trajet -> typeTrajet == null || trajet.getTypeTrajet() == typeTrajet)
+                .filter(trajet -> fumeur == null || Objects.equals(Boolean.TRUE.equals(trajet.getFumeurAutorise()), fumeur))
+                .filter(trajet -> animaux == null || Objects.equals(Boolean.TRUE.equals(trajet.getAnimauxAutorises()), animaux))
+                .filter(trajet -> typeVehicule == null || typeVehicule.isBlank()
+                        || (trajet.getVehicule() != null
+                        && trajet.getVehicule().getTypeVehicule() != null
+                        && trajet.getVehicule().getTypeVehicule().toLowerCase(Locale.ROOT).contains(typeVehicule.toLowerCase(Locale.ROOT))))
+                .filter(trajet -> prixMin == null || trajet.getPrix() >= prixMin)
+                .filter(trajet -> prixMax == null || trajet.getPrix() <= prixMax)
+                .filter(trajet -> noteMin == null || (trajet.getConducteur() != null && trajet.getConducteur().getNote() >= noteMin))
+                .filter(trajet -> distanceKmMin == null || (trajet.getDistanceKm() != null && trajet.getDistanceKm() >= distanceKmMin))
+                .filter(trajet -> distanceKmMax == null || (trajet.getDistanceKm() != null && trajet.getDistanceKm() <= distanceKmMax))
+                .filter(trajet -> heureDepartMin == null || !trajet.getDateDepart().toLocalTime().isBefore(heureDepartMin))
+                .filter(trajet -> heureDepartMax == null || !trajet.getDateDepart().toLocalTime().isAfter(heureDepartMax))
                 .map(DtoMapper::toTrajetResponse)
                 .collect(Collectors.toList());
     }
@@ -74,6 +106,12 @@ public class TrajetService {
         trajet.setNbPlacesTotal(request.nbPlacesTotal());
         trajet.setNbPlacesDisponibles(request.nbPlacesTotal());
         trajet.setPrix(request.prix());
+        trajet.setDistanceKm(request.distanceKm());
+        trajet.setTypeTrajet(request.typeTrajet() == null ? TypeTrajet.LEGER : request.typeTrajet());
+        trajet.setFumeurAutorise(Boolean.TRUE.equals(request.fumeurAutorise()));
+        trajet.setAnimauxAutorises(Boolean.TRUE.equals(request.animauxAutorises()));
+        trajet.setNbBagagesMax(request.nbBagagesMax() == null ? 0 : request.nbBagagesMax());
+        trajet.setTypeBagage(request.typeBagage());
         trajet.setStatut(StatutTrajet.OUVERT);
         trajet.setConducteur(conducteur);
         trajet.setVehicule(vehicule);
@@ -93,6 +131,12 @@ public class TrajetService {
         trajet.setNbPlacesTotal(request.nbPlacesTotal());
         trajet.setNbPlacesDisponibles(Math.min(trajet.getNbPlacesDisponibles(), request.nbPlacesTotal()));
         trajet.setPrix(request.prix());
+        trajet.setDistanceKm(request.distanceKm());
+        trajet.setTypeTrajet(request.typeTrajet() == null ? TypeTrajet.LEGER : request.typeTrajet());
+        trajet.setFumeurAutorise(Boolean.TRUE.equals(request.fumeurAutorise()));
+        trajet.setAnimauxAutorises(Boolean.TRUE.equals(request.animauxAutorises()));
+        trajet.setNbBagagesMax(request.nbBagagesMax() == null ? 0 : request.nbBagagesMax());
+        trajet.setTypeBagage(request.typeBagage());
         trajet.setVehicule(vehicule);
         return DtoMapper.toTrajetResponse(trajet);
     }

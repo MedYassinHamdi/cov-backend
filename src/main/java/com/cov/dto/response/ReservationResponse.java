@@ -11,5 +11,8 @@ public record ReservationResponse(
         String voyageurNom,
         int nbPlacesReservees,
         StatutReservation statut,
-        LocalDateTime dateReservation
+        double penaliteMontant,
+        int penalitePourcentage,
+        LocalDateTime dateReservation,
+        LocalDateTime dateAnnulation
 ) {}

@@ -26,6 +26,7 @@ public class Vehicule {
 
     private String marque;
     private String modele;
+    private String typeVehicule;
     private String immatriculation;
     private int nbPlaces;
     private String couleur;

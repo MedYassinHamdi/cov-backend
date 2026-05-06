@@ -7,6 +7,7 @@ import com.cov.repository.ReservationRepository;
 import com.cov.repository.TrajetRepository;
 import com.cov.repository.UtilisateurRepository;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +29,19 @@ public class UserService {
 
     public List<UserResponse> listUsers() {
         return utilisateurRepository.findAll().stream().map(DtoMapper::toUserResponse).collect(Collectors.toList());
+    }
+
+    public List<UserResponse> searchUsers(String q) {
+        if (q == null || q.isBlank()) {
+            return listUsers();
+        }
+        String keyword = q.trim().toLowerCase(Locale.ROOT);
+        return utilisateurRepository.findAll().stream()
+                .filter(user -> user.getEmail().toLowerCase(Locale.ROOT).contains(keyword)
+                        || user.getNom().toLowerCase(Locale.ROOT).contains(keyword)
+                        || user.getPrenom().toLowerCase(Locale.ROOT).contains(keyword))
+                .map(DtoMapper::toUserResponse)
+                .collect(Collectors.toList());
     }
 
     @Transactional

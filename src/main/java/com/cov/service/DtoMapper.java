@@ -49,11 +49,19 @@ final class DtoMapper {
                 trajet.getNbPlacesTotal(),
                 trajet.getNbPlacesDisponibles(),
                 trajet.getPrix(),
+                trajet.getDistanceKm(),
+                trajet.getTypeTrajet(),
+                Boolean.TRUE.equals(trajet.getFumeurAutorise()),
+                Boolean.TRUE.equals(trajet.getAnimauxAutorises()),
+                trajet.getNbBagagesMax() == null ? 0 : trajet.getNbBagagesMax(),
+                trajet.getTypeBagage(),
                 trajet.getStatut(),
                 conducteur != null ? conducteur.getId() : null,
                 conducteur != null ? conducteur.getNom() + " " + conducteur.getPrenom() : null,
+                conducteur != null ? conducteur.getNote() : null,
                 vehicule != null ? vehicule.getId() : null,
                 vehicule != null ? vehicule.getMarque() + " " + vehicule.getModele() : null,
+                vehicule != null ? vehicule.getTypeVehicule() : null,
                 vehicule != null ? vehicule.getImageUrl() : null,
                 trajet.getCreatedAt()
         );
@@ -69,7 +77,10 @@ final class DtoMapper {
                 reservation.getVoyageur() != null ? reservation.getVoyageur().getNom() + " " + reservation.getVoyageur().getPrenom() : null,
                 reservation.getNbPlacesReservees(),
                 reservation.getStatut(),
-                reservation.getDateReservation()
+                reservation.getPenaliteMontant() == null ? 0.0 : reservation.getPenaliteMontant(),
+                reservation.getPenalitePourcentage() == null ? 0 : reservation.getPenalitePourcentage(),
+                reservation.getDateReservation(),
+                reservation.getDateAnnulation()
         );
     }
 
@@ -78,6 +89,7 @@ final class DtoMapper {
                 vehicule.getId(),
                 vehicule.getMarque(),
                 vehicule.getModele(),
+                vehicule.getTypeVehicule(),
                 vehicule.getImmatriculation(),
                 vehicule.getNbPlaces(),
                 vehicule.getCouleur(),

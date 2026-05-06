@@ -45,7 +45,7 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/api/trajets").permitAll()
                     .requestMatchers(new RegexRequestMatcher("^/api/trajets/\\d+$", "GET")).permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                    .requestMatchers("/api/vehicules/**", "/api/reservations/**", "/api/avis/**").authenticated()
+                    .requestMatchers("/api/vehicules/**", "/api/reservations/**", "/api/avis/**", "/api/reclamations/**").authenticated()
                         .anyRequest().authenticated())
                 .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
                 .authenticationProvider(authenticationProvider())

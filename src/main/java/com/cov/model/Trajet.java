@@ -1,6 +1,7 @@
 package com.cov.model;
 
 import com.cov.enums.StatutTrajet;
+import com.cov.enums.TypeTrajet;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -52,6 +53,19 @@ public class Trajet {
     @Column(nullable = false)
     private double prix;
 
+    private Integer distanceKm;
+
+    @Enumerated(EnumType.STRING)
+    private TypeTrajet typeTrajet = TypeTrajet.LEGER;
+
+    private Boolean fumeurAutorise = false;
+
+    private Boolean animauxAutorises = false;
+
+    private Integer nbBagagesMax = 0;
+
+    private String typeBagage;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private StatutTrajet statut = StatutTrajet.OUVERT;
@@ -82,6 +96,18 @@ public class Trajet {
         }
         if (statut == null) {
             statut = StatutTrajet.OUVERT;
+        }
+        if (typeTrajet == null) {
+            typeTrajet = TypeTrajet.LEGER;
+        }
+        if (fumeurAutorise == null) {
+            fumeurAutorise = false;
+        }
+        if (animauxAutorises == null) {
+            animauxAutorises = false;
+        }
+        if (nbBagagesMax == null) {
+            nbBagagesMax = 0;
         }
         if (nbPlacesDisponibles == 0) {
             nbPlacesDisponibles = nbPlacesTotal;

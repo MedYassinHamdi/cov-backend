@@ -4,6 +4,7 @@ public record VehiculeResponse(
         Long id,
         String marque,
         String modele,
+        String typeVehicule,
         String immatriculation,
         int nbPlaces,
         String couleur,

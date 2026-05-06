@@ -3,11 +3,13 @@ package com.cov.service;
 import com.cov.dto.request.BecomeConducteurRequest;
 import com.cov.dto.request.LoginRequest;
 import com.cov.dto.request.RegisterRequest;
+import com.cov.dto.request.UpdateProfileRequest;
 import com.cov.dto.response.AuthResponse;
 import com.cov.dto.response.UserResponse;
 import com.cov.enums.Role;
 import com.cov.model.Conducteur;
 import com.cov.model.Utilisateur;
+import com.cov.model.Voyageur;
 import com.cov.repository.UtilisateurRepository;
 import com.cov.security.AppUserDetails;
 import com.cov.security.JwtUtil;
@@ -42,7 +44,8 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        if (request.role() == Role.ADMIN) {
+        Role requestedRole = request.role() == null ? Role.VOYAGEUR : request.role();
+        if (requestedRole == Role.ADMIN) {
             throw new IllegalArgumentException("L'inscription admin n'est pas autorisee");
         }
         if (utilisateurRepository.existsByEmail(request.email())) {
@@ -50,14 +53,22 @@ public class AuthService {
         }
 
         String encodedPassword = passwordEncoder.encode(request.password());
-        Utilisateur utilisateur = new Conducteur(
-                request.nom(),
-                request.prenom(),
-                request.email(),
-                encodedPassword,
-                request.telephone(),
-                request.permisConduire()
-        );
+        Utilisateur utilisateur = requestedRole == Role.CONDUCTEUR
+                ? new Conducteur(
+                        request.nom(),
+                        request.prenom(),
+                        request.email(),
+                        encodedPassword,
+                        request.telephone(),
+                        request.permisConduire()
+                )
+                : new Voyageur(
+                        request.nom(),
+                        request.prenom(),
+                        request.email(),
+                        encodedPassword,
+                        request.telephone()
+                );
         Utilisateur saved = utilisateurRepository.save(utilisateur);
         AppUserDetails principal = new AppUserDetails(saved.getId(), saved.getEmail(), saved.getPassword(), saved.isActif(), saved.getRole());
         String token = jwtUtil.generateToken(principal, saved.getId(), saved.getRole().name());
@@ -79,6 +90,28 @@ public class AuthService {
         AppUserDetails principal = (AppUserDetails) authentication.getPrincipal();
         Utilisateur utilisateur = utilisateurRepository.findById(principal.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
+        return DtoMapper.toUserResponse(utilisateur);
+    }
+
+    @Transactional
+    public UserResponse updateProfile(UpdateProfileRequest request, Authentication authentication) {
+        if (request == null) {
+            throw new IllegalArgumentException("Aucune donnee fournie pour la mise a jour");
+        }
+        AppUserDetails principal = (AppUserDetails) authentication.getPrincipal();
+        Utilisateur utilisateur = utilisateurRepository.findById(principal.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
+
+        if (request.nom() != null && !request.nom().isBlank()) {
+            utilisateur.setNom(request.nom().trim());
+        }
+        if (request.prenom() != null && !request.prenom().isBlank()) {
+            utilisateur.setPrenom(request.prenom().trim());
+        }
+        if (request.telephone() != null) {
+            utilisateur.setTelephone(request.telephone().trim());
+        }
+
         return DtoMapper.toUserResponse(utilisateur);
     }
 

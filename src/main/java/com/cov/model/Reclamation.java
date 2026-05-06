@@ -1,6 +1,6 @@
 package com.cov.model;
 
-import com.cov.enums.StatutReservation;
+import com.cov.enums.StatutReclamation;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -24,50 +25,49 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class Reservation {
+public class Reclamation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "voyageur_id", nullable = false)
-    private Voyageur voyageur;
-
-    @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "trajet_id", nullable = false)
-    private Trajet trajet;
-
     @Column(nullable = false)
-    private int nbPlacesReservees;
+    private String objet;
+
+    @Column(nullable = false, length = 2000)
+    private String message;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private StatutReservation statut = StatutReservation.EN_ATTENTE;
+    private StatutReclamation statut = StatutReclamation.OUVERTE;
 
-    private Double penaliteMontant = 0.0;
+    private LocalDateTime dateCreation;
 
-    private Integer penalitePourcentage = 0;
+    private LocalDateTime dateMiseAJour;
 
-    private LocalDateTime dateReservation;
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "auteur_id", nullable = false)
+    private Utilisateur auteur;
 
-    private LocalDateTime dateAnnulation;
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reservation_id")
+    private Reservation reservation;
 
     @PrePersist
     void prePersist() {
-        if (dateReservation == null) {
-            dateReservation = LocalDateTime.now();
-        }
         if (statut == null) {
-            statut = StatutReservation.EN_ATTENTE;
+            statut = StatutReclamation.OUVERTE;
         }
-        if (penaliteMontant == null) {
-            penaliteMontant = 0.0;
+        if (dateCreation == null) {
+            dateCreation = LocalDateTime.now();
         }
-        if (penalitePourcentage == null) {
-            penalitePourcentage = 0;
-        }
+        dateMiseAJour = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    void preUpdate() {
+        dateMiseAJour = LocalDateTime.now();
     }
 }
