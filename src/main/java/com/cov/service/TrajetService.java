@@ -137,6 +137,9 @@ public class TrajetService {
         trajet.setAnimauxAutorises(Boolean.TRUE.equals(request.animauxAutorises()));
         trajet.setNbBagagesMax(request.nbBagagesMax() == null ? 0 : request.nbBagagesMax());
         trajet.setTypeBagage(request.typeBagage());
+        if (request.statut() != null) {
+            trajet.setStatut(request.statut());
+        }
         trajet.setVehicule(vehicule);
         return DtoMapper.toTrajetResponse(trajet);
     }

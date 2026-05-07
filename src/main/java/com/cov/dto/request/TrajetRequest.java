@@ -1,5 +1,6 @@
 package com.cov.dto.request;
 
+import com.cov.enums.StatutTrajet;
 import com.cov.enums.TypeTrajet;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Min;
@@ -19,5 +20,6 @@ public record TrajetRequest(
         Boolean animauxAutorises,
         @Min(0) Integer nbBagagesMax,
         String typeBagage,
-        Long vehiculeId
+        Long vehiculeId,
+        StatutTrajet statut
 ) {}
