@@ -39,6 +39,13 @@ public class TrajetService {
         this.vehiculeRepository = vehiculeRepository;
     }
 
+    private TrajetResponse toTrajetResponseWithCount(Trajet trajet) {
+        Long count = trajet.getConducteur() != null 
+            ? trajetRepository.countByConducteurId(trajet.getConducteur().getId()) 
+            : 0L;
+        return DtoMapper.toTrajetResponse(trajet, count);
+    }
+
     public List<TrajetResponse> search(String depart,
                                        String arrivee,
                                        LocalDate date,
@@ -77,20 +84,20 @@ public class TrajetService {
                 .filter(trajet -> distanceKmMax == null || (trajet.getDistanceKm() != null && trajet.getDistanceKm() <= distanceKmMax))
                 .filter(trajet -> heureDepartMin == null || !trajet.getDateDepart().toLocalTime().isBefore(heureDepartMin))
                 .filter(trajet -> heureDepartMax == null || !trajet.getDateDepart().toLocalTime().isAfter(heureDepartMax))
-                .map(DtoMapper::toTrajetResponse)
+                .map(this::toTrajetResponseWithCount)
                 .collect(Collectors.toList());
     }
 
     public TrajetResponse getById(Long id) {
-        return DtoMapper.toTrajetResponse(findTrajet(id));
+        return toTrajetResponseWithCount(findTrajet(id));
     }
 
     public List<TrajetResponse> mesTrajets(AppUserDetails principal) {
-        return trajetRepository.findByConducteurId(principal.getId()).stream().map(DtoMapper::toTrajetResponse).collect(Collectors.toList());
+        return trajetRepository.findByConducteurId(principal.getId()).stream().map(this::toTrajetResponseWithCount).collect(Collectors.toList());
     }
 
     public List<TrajetResponse> allTrajets() {
-        return trajetRepository.findAll().stream().map(DtoMapper::toTrajetResponse).collect(Collectors.toList());
+        return trajetRepository.findAll().stream().map(this::toTrajetResponseWithCount).collect(Collectors.toList());
     }
 
     @Transactional
@@ -115,7 +122,7 @@ public class TrajetService {
         trajet.setStatut(StatutTrajet.OUVERT);
         trajet.setConducteur(conducteur);
         trajet.setVehicule(vehicule);
-        return DtoMapper.toTrajetResponse(trajetRepository.save(trajet));
+        return toTrajetResponseWithCount(trajetRepository.save(trajet));
     }
 
     @Transactional
@@ -141,7 +148,7 @@ public class TrajetService {
             trajet.setStatut(request.statut());
         }
         trajet.setVehicule(vehicule);
-        return DtoMapper.toTrajetResponse(trajet);
+        return toTrajetResponseWithCount(trajet);
     }
 
     @Transactional
@@ -149,7 +156,7 @@ public class TrajetService {
         Trajet trajet = findTrajet(id);
         assertOwner(trajet, principal);
         trajet.setStatut(StatutTrajet.ANNULE);
-        return DtoMapper.toTrajetResponse(trajet);
+        return toTrajetResponseWithCount(trajet);
     }
 
     @Transactional

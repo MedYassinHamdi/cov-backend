@@ -22,6 +22,7 @@ public record TrajetResponse(
         Long conducteurId,
         String conducteurNom,
         Double conducteurNote,
+        Long conducteurTrajets,
         Long vehiculeId,
         String vehiculeDescription,
         String vehiculeType,

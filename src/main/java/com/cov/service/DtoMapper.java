@@ -38,7 +38,7 @@ final class DtoMapper {
         );
     }
 
-    static TrajetResponse toTrajetResponse(Trajet trajet) {
+    static TrajetResponse toTrajetResponse(Trajet trajet, Long conducteurTrajets) {
         Conducteur conducteur = trajet.getConducteur();
         Vehicule vehicule = trajet.getVehicule();
         return new TrajetResponse(
@@ -59,12 +59,17 @@ final class DtoMapper {
                 conducteur != null ? conducteur.getId() : null,
                 conducteur != null ? conducteur.getNom() + " " + conducteur.getPrenom() : null,
                 conducteur != null ? conducteur.getNote() : null,
+                conducteurTrajets,
                 vehicule != null ? vehicule.getId() : null,
                 vehicule != null ? vehicule.getMarque() + " " + vehicule.getModele() : null,
                 vehicule != null ? vehicule.getTypeVehicule() : null,
                 vehicule != null ? vehicule.getImageUrl() : null,
                 trajet.getCreatedAt()
         );
+    }
+
+    static TrajetResponse toTrajetResponse(Trajet trajet) {
+        return toTrajetResponse(trajet, 0L);
     }
 
     static ReservationResponse toReservationResponse(Reservation reservation) {
